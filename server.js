@@ -1,22 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
-const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
+const OpenAI = require('openai');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 app.post('/api/chat', async (req, res) => {
   const message = req.body.message;
 
-  const completion = await openai.createChatCompletion({
+  const completion = await openai.chat.completions.create({
     model: 'gpt-4',
     messages: [
       {
@@ -28,7 +27,7 @@ app.post('/api/chat', async (req, res) => {
     ],
   });
 
-  const reply = completion.data.choices[0].message.content;
+  const reply = completion.choices[0].message.content;
 
   // Save to log
   fs.appendFileSync('chat-log.json', JSON.stringify({ message, reply, time: new Date().toISOString() }) + '\n');
