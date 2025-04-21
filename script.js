@@ -7,8 +7,26 @@ form.addEventListener('submit', async (e) => {
   const userMessage = input.value.trim();
   if (!userMessage) return;
 
-  appendMessage('You', userMessage);
-  input.value = '';
+function appendMessage(sender, text) {
+  const wrapper = document.createElement('div');
+  const isUser = sender === 'You';
+
+  wrapper.className = `
+    flex ${isUser ? 'justify-end' : 'justify-start'} w-full
+  `;
+
+  const bubble = document.createElement('div');
+  bubble.className = `
+    ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}
+    rounded-lg px-4 py-2 max-w-xs whitespace-pre-wrap
+  `;
+  bubble.innerHTML = `<strong class="block text-sm font-semibold mb-1">${sender}</strong>${text}`;
+
+  wrapper.appendChild(bubble);
+  log.appendChild(wrapper);
+  log.scrollTop = log.scrollHeight;
+}
+
 
   const response = await fetch('https://product-dev-chat-production.up.railway.app/api/chat', {
     method: 'POST',
