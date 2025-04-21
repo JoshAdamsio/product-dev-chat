@@ -10,7 +10,7 @@ form.addEventListener('submit', async (e) => {
   appendMessage('You', userMessage);
   input.value = '';
 
-  const response = await fetch('/api/chat', {
+  const response = await fetch('https://product-dev-chat-production.up.railway.app/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: userMessage })
