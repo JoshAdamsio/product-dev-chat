@@ -1,0 +1,15 @@
+{
+  "name": "product-dev-chat",
+  "version": "1.0.0",
+  "description": "Chat app for Product Dev Navigator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "openai": "^4.28.4"
+  }
+}
