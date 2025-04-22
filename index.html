@@ -77,7 +77,21 @@
         ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}
         rounded-lg px-4 py-2 w-[95%] whitespace-pre-wrap shadow
       `;
-      bubble.innerHTML = `<strong class="block text-sm font-semibold mb-1">${sender}</strong>${text}`;
+const nameSpan = document.createElement('strong');
+nameSpan.className = 'block text-sm font-semibold mb-1';
+nameSpan.textContent = sender;
+
+const textSpan = document.createElement('span');
+let index = 0;
+
+const typingInterval = setInterval(() => {
+  textSpan.textContent += text[index];
+  index++;
+  if (index >= text.length) clearInterval(typingInterval);
+}, 15);
+
+bubble.appendChild(nameSpan);
+bubble.appendChild(textSpan);
 
       wrapper.appendChild(bubble);
       log.appendChild(wrapper);
