@@ -114,6 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   downloadButton.addEventListener('click', async () => {
+      console.log("Download button clicked");
+
     const { Document, Packer, Paragraph, TextRun } = window.docx;
     const messages = getChatMessages();
     const doc = new Document({
