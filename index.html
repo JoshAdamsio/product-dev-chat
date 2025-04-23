@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Product Dev Navigator</title>
 
-  <!-- External Scripts -->
-  <script src="script.js" defer></script>
+  <!-- Load docx.js first -->
   <script src="https://unpkg.com/docx@7.7.0/build/docx.js"></script>
+  <!-- Then load your script AFTER -->
+  <script src="script.js" defer></script>
 
   <!-- Tailwind CSS & Font -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -27,6 +29,7 @@
     }
   </style>
 </head>
+
 
 <body class="bg-white text-gray-900 font-sans h-screen flex flex-col">
   <div class="max-w-3xl mx-auto w-full flex flex-col flex-grow overflow-hidden">
