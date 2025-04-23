@@ -5,21 +5,28 @@ const OpenAI = require('openai');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-app.use(cors({
-  origin: 'https://product-dev-chat.vercel.app'
-}));
+app.use(cors({ origin: 'https://product-dev-chat.vercel.app' }));
 app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 
 app.post('/api/chat', async (req, res) => {
-  const message = req.body.message;
+  const { message, history = [] } = req.body;
 
   try {
     const thread = await openai.beta.threads.create();
+
+    // Replay full history to preserve context
+    for (const msg of history) {
+      await openai.beta.threads.messages.create(thread.id, {
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content,
+      });
+    }
+
+    // Add the new user message
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
       content: message,
