@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Product Dev Navigator</title>
-  <script src="docx.js"></script>
-  <script src="script.js" defer></script>
+
+  <!-- Tailwind CSS & Font -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Custom Styles -->
   <style>
     body { font-family: 'Inter', sans-serif; }
     .fade-in { opacity: 0; animation: fadeIn 1.2s ease-out forwards; }
@@ -21,13 +23,23 @@
     }
   </style>
 </head>
+
 <body class="bg-white text-gray-900 font-sans h-screen flex flex-col">
+
   <div class="max-w-3xl mx-auto w-full flex flex-col flex-grow overflow-hidden">
+
+    <!-- Header -->
     <header class="p-4 border-b">
       <h1 class="text-3xl font-bold">Ask the Product Dev Navigator</h1>
     </header>
+
+    <!-- Chat Log -->
     <div id="chat-log" class="min-h-[50vh] flex-1 overflow-y-auto px-4 py-2 bg-gray-50 space-y-4"></div>
+
+    <!-- Typing Indicator -->
     <div id="loading" class="text-gray-500 italic animate-pulse px-4 pb-1 hidden">Navigator is typing...</div>
+
+    <!-- Input and Buttons -->
     <form id="chat-form" class="flex flex-col gap-2 p-4 border-t">
       <div class="flex items-center gap-2">
         <textarea id="user-input" rows="2"
@@ -40,6 +52,11 @@
         <button id="download-button" type="button" class="bg-gray-600 text-white px-3 py-2 rounded w-32 disabled-button" disabled>Download Chat</button>
       </div>
     </form>
+
   </div>
+
+  <!-- Load app JavaScript (type="module" for imports!) -->
+  <script type="module" src="script.js"></script>
+
 </body>
 </html>
