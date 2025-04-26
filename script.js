@@ -1,177 +1,106 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("user-input");
-  const log = document.getElementById("chat-log");
-  const loading = document.getElementById("loading");
-  const stopButton = document.getElementById("stop-button");
-  const downloadButton = document.getElementById("download-button");
+const form = document.getElementById('chat-form');
+const input = document.getElementById('user-input');
+const log = document.getElementById('chat-log');
+const stopButton = document.getElementById('stop-button');
+const downloadButton = document.getElementById('download-button');
 
-  let typingInterval = null;
-  let stopTyping = false;
-  let messageCount = 0;
-  const messageHistory = [];
+let stopTyping = false;
+let messageHistory = [];
 
-  input.addEventListener("input", () => {
-    input.style.height = "auto";
-    input.style.height = input.scrollHeight + "px";
-  });
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+});
 
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      form.dispatchEvent(new Event("submit"));
-    }
-  });
-
-  form.addEventListener("submit", async (e) => {
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    const userMessage = input.value.trim();
-    if (!userMessage) return;
+    form.dispatchEvent(new Event('submit'));
+  }
+});
 
-    appendMessage("You", userMessage, true);
-    messageHistory.push({ role: "user", content: userMessage });
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
 
-    input.value = "";
-    input.style.height = "auto";
-    loading.classList.remove("hidden");
-    stopButton.classList.remove("opacity-40");
-    stopButton.removeAttribute("disabled");
-    stopTyping = false;
-    messageCount++;
+  appendMessage('You', userMessage, true);
+  messageHistory.push({ role: 'user', content: userMessage });
 
-    const response = await fetch("https://product-dev-chat-production.up.railway.app/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userMessage, history: messageHistory }),
-    });
+  input.value = '';
+  input.style.height = 'auto';
+  stopTyping = false;
+  stopButton.disabled = false;
+  stopButton.classList.remove('opacity-40');
 
-    const data = await response.json();
-    loading.classList.add("hidden");
-    stopButton.classList.add("opacity-40");
-    stopButton.setAttribute("disabled", "true");
+  const thinkingBubble = appendMessage('Navigator', 'Product Coach is thinking...', true, true);
 
-    appendMessage("Navigator", data.reply);
-    messageHistory.push({ role: "assistant", content: data.reply });
-
-    if (messageCount >= 1) {
-      downloadButton.classList.remove("disabled-button");
-      downloadButton.removeAttribute("disabled");
-    }
+  const response = await fetch('https://product-dev-chat-production.up.railway.app/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: userMessage, history: messageHistory })
   });
 
-  stopButton.addEventListener("click", () => {
-    stopTyping = true;
-    stopButton.classList.add("opacity-40");
-    stopButton.setAttribute("disabled", "true");
-    loading.classList.add("hidden");
-  });
+  const data = await response.json();
+  stopTyping = true;
+  stopButton.disabled = true;
+  stopButton.classList.add('opacity-40');
 
-  function appendMessage(sender, text, isInstant = false) {
-    const wrapper = document.createElement("div");
-    const isUser = sender === "You";
-    wrapper.className = `flex ${isUser ? "justify-end" : "justify-start"} w-full`;
+  // Replace bubble text
+  if (thinkingBubble) log.removeChild(thinkingBubble);
+  appendMessage('Navigator', data.reply, false);
 
-    const bubble = document.createElement("div");
-    bubble.className = `fade-in ${
-      isUser ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"
-    } rounded-lg px-4 py-2 w-[95%] whitespace-pre-wrap shadow`;
+  messageHistory.push({ role: 'assistant', content: data.reply });
+  downloadButton.disabled = false;
+  downloadButton.classList.remove('opacity-40');
+});
 
-    const nameSpan = document.createElement("strong");
-    nameSpan.className = "block text-sm font-semibold mb-1";
-    nameSpan.textContent = sender;
+stopButton.addEventListener('click', () => {
+  stopTyping = true;
+  stopButton.disabled = true;
+  stopButton.classList.add('opacity-40');
+});
 
-    const textSpan = document.createElement("span");
+function appendMessage(sender, text, instant = false, isThinking = false) {
+  const wrapper = document.createElement('div');
+  const isUser = sender === 'You';
+  wrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'} w-full`;
 
-    if (isInstant) {
-      textSpan.textContent = text;
-    } else {
-      let index = 0;
-      typingInterval = setInterval(() => {
-        if (stopTyping || index >= text.length) {
-          clearInterval(typingInterval);
-          return;
-        }
-        textSpan.textContent += text[index];
-        index++;
-      }, 15);
-    }
+  const bubble = document.createElement('div');
+  bubble.className = `${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'} rounded-lg px-4 py-2 w-[95%] whitespace-pre-wrap shadow`;
 
-    bubble.appendChild(nameSpan);
-    bubble.appendChild(textSpan);
-    wrapper.appendChild(bubble);
-    log.appendChild(wrapper);
-    log.scrollTop = log.scrollHeight;
+  const nameSpan = document.createElement('strong');
+  nameSpan.className = 'block text-sm font-semibold mb-1';
+  nameSpan.textContent = sender;
+
+  const textContainer = document.createElement('div');
+
+  if (isThinking) {
+    textContainer.textContent = text;
+    textContainer.classList.add('thinking');
+  } else if (instant) {
+    textContainer.textContent = text;
+  } else {
+    const lines = text.split('\n');
+    let index = 0;
+    const interval = setInterval(() => {
+      if (stopTyping || index >= lines.length) {
+        clearInterval(interval);
+        return;
+      }
+      const line = document.createElement('div');
+      line.textContent = lines[index];
+      line.classList.add('fade-line');
+      textContainer.appendChild(line);
+      index++;
+    }, 500);
   }
 
-  downloadButton.addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "pt", "letter");
+  bubble.appendChild(nameSpan);
+  bubble.appendChild(textContainer);
+  wrapper.appendChild(bubble);
+  log.appendChild(wrapper);
+  log.scrollTop = log.scrollHeight;
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    let y = 50;
-
-    pdf.setFont("Helvetica");
-
-    // Title
-    pdf.setFontSize(20);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text("Product Dev Chat", pageWidth / 2, y, { align: "center" });
-    y += 30;
-
-    // Subtitle
-    pdf.setFontSize(12);
-    pdf.setTextColor(80, 80, 80);
-    pdf.text("Generated by the Product Coach at JoshAdams.io/product-coach", pageWidth / 2, y, { align: "center" });
-    y += 18;
-
-    // Timestamp
-    const now = new Date();
-    const timestamp = now.toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-    pdf.setFontSize(10);
-    pdf.text(`Downloaded: ${timestamp}`, pageWidth / 2, y, { align: "center" });
-    y += 30;
-
-    pdf.setFontSize(12);
-    pdf.setTextColor(0, 0, 0);
-
-    const messages = document.querySelectorAll("#chat-log > div");
-
-    messages.forEach((wrapper) => {
-      const name = wrapper.querySelector("strong")?.textContent || "";
-      const content = wrapper.querySelector("span")?.textContent || "";
-
-      if (y > pageHeight - 80) {
-        addPageNumber(pdf);
-        pdf.addPage();
-        y = 50;
-      }
-
-      pdf.setFont(undefined, "bold");
-      pdf.text(name, 50, y);
-      y += 16;
-
-      pdf.setFont(undefined, "normal");
-      const lines = pdf.splitTextToSize(content, 500);
-      pdf.text(lines, 60, y);
-      y += lines.length * 14 + 10;
-    });
-
-    addPageNumber(pdf);
-    pdf.save("Product-Dev-Chat.pdf");
-
-    function addPageNumber(doc) {
-      const pageCount = doc.internal.getNumberOfPages();
-      const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
-
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
-      doc.setTextColor(0, 0, 0);
-    }
-  });
-});
+  return wrapper;
+}
