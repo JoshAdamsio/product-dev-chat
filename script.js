@@ -1,5 +1,7 @@
 import docx from 'https://cdn.jsdelivr.net/npm/docx@9.4.1/+esm';
 
+console.log('Imported docx:', docx); // ✅ This should not be null in the browser console
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('chat-form');
   const input = document.getElementById('user-input');
@@ -82,9 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const textSpan = document.createElement('span');
 
-    if (typingInterval) {
-      clearInterval(typingInterval);
-    }
+    if (typingInterval) clearInterval(typingInterval);
 
     if (isInstant) {
       textSpan.textContent = text;
@@ -116,6 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   downloadButton.addEventListener('click', async () => {
+    console.log('Download button clicked'); // 🧪 Confirm button is working
+
+    if (!docx || typeof docx.Document !== 'function') {
+      alert('docx module not loaded properly.');
+      console.error('docx is:', docx);
+      return;
+    }
+
     const { Document, Packer, Paragraph, TextRun } = docx;
     const messages = getChatMessages();
     const doc = new Document({
