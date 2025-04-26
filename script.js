@@ -103,17 +103,40 @@ document.addEventListener('DOMContentLoaded', () => {
     log.scrollTop = log.scrollHeight;
   }
 
-  downloadButton.addEventListener('click', () => {
-    const element = document.getElementById('chat-log');
+  downloadButton.addEventListener('click', async () => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'pt', 'letter');
 
-    const opt = {
-      margin:       0.5,
-      filename:     'Product-Dev-Chat.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
+    let y = 50; // starting vertical position
+    pdf.setFont('Helvetica');
 
-    html2pdf().from(element).set(opt).save();
+    // Title
+    pdf.setFontSize(20);
+    pdf.text('Product Dev Chat', 50, y);
+    y += 30;
+
+    // Chat Messages
+    pdf.setFontSize(12);
+    const messages = document.querySelectorAll('#chat-log > div');
+    messages.forEach(wrapper => {
+      const name = wrapper.querySelector('strong')?.textContent || '';
+      const content = wrapper.querySelector('span')?.textContent || '';
+
+      if (y > 700) { // add new page if needed
+        pdf.addPage();
+        y = 50;
+      }
+
+      pdf.setFont(undefined, 'bold');
+      pdf.text(name, 50, y);
+      y += 16;
+
+      pdf.setFont(undefined, 'normal');
+      const lines = pdf.splitTextToSize(content, 500);
+      pdf.text(lines, 60, y);
+      y += lines.length * 14 + 10;
+    });
+
+    pdf.save('Product-Dev-Chat.pdf');
   });
 });
