@@ -1,3 +1,5 @@
+import docx from 'https://cdn.jsdelivr.net/npm/docx@9.4.1/+esm';
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('chat-form');
   const input = document.getElementById('user-input');
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.style.height = input.scrollHeight + 'px';
   });
 
-  input.addEventListener('keydown', function (e) {
+  input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       form.dispatchEvent(new Event('submit'));
@@ -114,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   downloadButton.addEventListener('click', async () => {
-    const { Document, Packer, Paragraph, TextRun } = window.docx;
+    const { Document, Packer, Paragraph, TextRun } = docx;
     const messages = getChatMessages();
     const doc = new Document({
       sections: [{
