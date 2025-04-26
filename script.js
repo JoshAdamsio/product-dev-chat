@@ -1,7 +1,3 @@
-import docx from 'https://cdn.jsdelivr.net/npm/docx@9.4.1/+esm';
-
-console.log('Imported docx:', docx); // ✅ This should not be null in the browser console
-
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('chat-form');
   const input = document.getElementById('user-input');
@@ -107,41 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
     log.scrollTop = log.scrollHeight;
   }
 
-  function getChatMessages() {
-    return Array.from(document.querySelectorAll('#chat-log > div')).map(wrapper => {
-      const name = wrapper.querySelector('strong')?.textContent || '';
-      const content = wrapper.querySelector('span')?.textContent || '';
-      return { name, content };
-    });
-  }
+  downloadButton.addEventListener('click', () => {
+    const element = document.getElementById('chat-log');
 
-  downloadButton.addEventListener('click', async () => {
-    console.log('Download button clicked'); // 🧪 Confirm button is working
+    const opt = {
+      margin:       0.5,
+      filename:     'Product-Dev-Chat.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
 
-    if (!docx || typeof docx.Document !== 'function') {
-      alert('docx module not loaded properly.');
-      console.error('docx is:', docx);
-      return;
-    }
-
-    const { Document, Packer, Paragraph, TextRun } = docx;
-    const messages = getChatMessages();
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: messages.flatMap(msg => [
-          new Paragraph({
-            children: [new TextRun({ text: msg.name, bold: true })],
-          }),
-          new Paragraph(msg.content),
-          new Paragraph('')
-        ])
-      }]
-    });
-    const blob = await Packer.toBlob(doc);
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Product-Dev-Chat.docx';
-    link.click();
+    html2pdf().from(element).set(opt).save();
   });
 });
