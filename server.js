@@ -18,7 +18,7 @@ app.post('/api/chat', async (req, res) => {
   try {
     const thread = await openai.beta.threads.create();
 
-    // Replay full history to preserve context
+    // Replay full history for context
     for (const msg of history) {
       await openai.beta.threads.messages.create(thread.id, {
         role: msg.role === 'user' ? 'user' : 'assistant',
@@ -26,7 +26,6 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    // Add the new user message
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
       content: message,
@@ -36,7 +35,7 @@ app.post('/api/chat', async (req, res) => {
       assistant_id: ASSISTANT_ID,
     });
 
-    // Polling until run completes
+    // Wait for run completion
     let completedRun;
     while (true) {
       const check = await openai.beta.threads.runs.retrieve(thread.id, run.id);
@@ -51,17 +50,22 @@ app.post('/api/chat', async (req, res) => {
     const messages = await openai.beta.threads.messages.list(thread.id);
     const assistantReply = messages.data.find(m => m.role === 'assistant')?.content[0]?.text?.value || '';
 
-    // Save to Supabase
-    await supabase.from('chat_logs').insert([
+    // Insert into Supabase with fallback logging
+    const { error } = await supabase.from('chat_logs').insert([
       {
         message: message,
         reply: assistantReply,
+        timestamp: new Date().toISOString() // optional: only include if column exists
       }
     ]);
 
+    if (error) {
+      console.error('❌ Supabase insert error:', error);
+    }
+
     res.json({ reply: assistantReply });
   } catch (error) {
-    console.error(error);
+    console.error('❌ Server error:', error);
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
