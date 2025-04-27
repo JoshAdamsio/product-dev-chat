@@ -67,20 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nameSpan.textContent = sender;
 
     const textSpan = document.createElement("span");
-
-    if (isInstant) {
-      textSpan.textContent = text;
-    } else {
-      let index = 0;
-      typingInterval = setInterval(() => {
-        if (stopTyping || index >= text.length) {
-          clearInterval(typingInterval);
-          return;
-        }
-        textSpan.textContent += text[index];
-        index++;
-      }, 15);
-    }
+    textSpan.innerHTML = parseMarkdown(text); // Apply markdown parsing!
 
     bubble.appendChild(nameSpan);
     bubble.appendChild(textSpan);
@@ -126,7 +113,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ✅ PDF Download Logic (unchanged)
+  function parseMarkdown(text) {
+    // Basic Markdown parsing
+    return text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")   // Bold
+      .replace(/^# (.*$)/gim, "<h3 class='text-lg font-bold mb-2'>$1</h3>") // H3 Heading
+      .replace(/\n/g, "<br>");   // Line breaks
+  }
+
   downloadButton.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "pt", "letter");
@@ -157,7 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     messages.forEach((wrapper) => {
       const name = wrapper.querySelector("strong")?.textContent || "";
-      const content = wrapper.querySelector("span")?.textContent || "";
+      const rawContent = wrapper.querySelector("span")?.innerHTML || "";
+      const plainTextContent = rawContent
+        .replace(/<[^>]*>/g, "") // strip all html tags
+        .replace(/&nbsp;/g, " "); // clean spaces
 
       if (y > pageHeight - 80) {
         addPageNumber(pdf);
@@ -170,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
       y += 16;
 
       pdf.setFont(undefined, "normal");
-      const lines = pdf.splitTextToSize(content, 500);
+      const lines = pdf.splitTextToSize(plainTextContent, 500);
       pdf.text(lines, 60, y);
       y += lines.length * 14 + 10;
     });
