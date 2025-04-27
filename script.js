@@ -2,10 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("user-input");
   const log = document.getElementById("chat-log");
-  const loading = document.getElementById("loading");
   const downloadButton = document.getElementById("download-button");
 
   let typingInterval = null;
+  let thinkingBubble = null;
   let stopTyping = false;
   let messageCount = 0;
   const messageHistory = [];
@@ -32,9 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     input.value = "";
     input.style.height = "auto";
-    loading.classList.remove("hidden");
     stopTyping = false;
     messageCount++;
+
+    showThinkingBubble();
 
     const response = await fetch("https://product-dev-chat-production.up.railway.app/api/chat", {
       method: "POST",
@@ -43,8 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const data = await response.json();
-    loading.classList.add("hidden");
-
+    removeThinkingBubble();
     appendMessage("Navigator", data.reply);
     messageHistory.push({ role: "assistant", content: data.reply });
 
@@ -89,7 +89,44 @@ document.addEventListener("DOMContentLoaded", () => {
     log.scrollTop = log.scrollHeight;
   }
 
-  // ✅ PDF Download Logic
+  function showThinkingBubble() {
+    thinkingBubble = document.createElement("div");
+    thinkingBubble.className = "flex justify-start w-full fade-in";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bg-gray-100 text-gray-900 rounded-lg px-4 py-2 w-[95%] shadow flex flex-col items-start";
+
+    const nameSpan = document.createElement("strong");
+    nameSpan.className = "block text-sm font-semibold mb-1";
+    nameSpan.textContent = "Navigator";
+
+    const thinkingText = document.createElement("span");
+    thinkingText.className = "text-gray-500 text-base";
+    thinkingText.textContent = "Product Coach is thinking...";
+
+    const progressBar = document.createElement("div");
+    progressBar.className = "mt-2 w-full bg-gray-200 rounded-full h-2.5 overflow-hidden relative";
+    const progress = document.createElement("div");
+    progress.className = "absolute bg-blue-400 h-2.5 animate-progress";
+    progress.style.width = "40%";
+
+    progressBar.appendChild(progress);
+    bubble.appendChild(nameSpan);
+    bubble.appendChild(thinkingText);
+    bubble.appendChild(progressBar);
+    thinkingBubble.appendChild(bubble);
+    log.appendChild(thinkingBubble);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function removeThinkingBubble() {
+    if (thinkingBubble) {
+      thinkingBubble.remove();
+      thinkingBubble = null;
+    }
+  }
+
+  // ✅ PDF Download Logic (unchanged)
   downloadButton.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "pt", "letter");
