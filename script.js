@@ -119,7 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-500 underline' target='_blank'>$1</a>"); // Links
   }
 
-  // ✅ Full PDF Download Logic
   downloadButton.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("p", "pt", "letter");
@@ -134,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const timestampForHeader = now.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 
     function setPageHeader(doc) {
-      doc.setFont("Helvetica");
+      doc.setFont("Helvetica", "bold");
       doc.setFontSize(20);
       doc.setTextColor(0, 0, 0);
       doc.text("Product Dev Chat", pageWidth / 2, 40, { align: "center" });
@@ -157,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setTextColor(0, 0, 0);
     }
 
-    // First page header
     setPageHeader(pdf);
 
     const messages = document.querySelectorAll("#chat-log > div");
@@ -166,11 +164,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = wrapper.querySelector("strong")?.textContent || "";
       const rawContent = wrapper.querySelector("span")?.innerText || "";
 
-      if (y > pageHeight - 100) {
+      if (y > pageHeight - 120) {
         addPageNumber(pdf);
         pdf.addPage();
-        y = 100;
         setPageHeader(pdf);
+        y = 100;
       }
 
       pdf.setFont("Helvetica", "bold");
@@ -180,19 +178,21 @@ document.addEventListener("DOMContentLoaded", () => {
       y += 18;
 
       pdf.setFont("Helvetica", "normal");
-      const lines = pdf.splitTextToSize(rawContent, pageWidth - marginX * 2);
+      pdf.setFontSize(11);
+
+      const lines = pdf.splitTextToSize(rawContent, pageWidth - marginX * 2 - 10);
       lines.forEach((line) => {
         if (y > pageHeight - 80) {
           addPageNumber(pdf);
           pdf.addPage();
-          y = 100;
           setPageHeader(pdf);
+          y = 100;
         }
-        pdf.text(line, marginX, y);
+        pdf.text(line, marginX + 10, y); // Indent message slightly
         y += 16;
       });
 
-      y += 10;
+      y += 14; // Space between messages
     });
 
     addPageNumber(pdf);
