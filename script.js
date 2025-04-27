@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("user-input");
   const log = document.getElementById("chat-log");
   const loading = document.getElementById("loading");
-  const stopButton = document.getElementById("stop-button");
   const downloadButton = document.getElementById("download-button");
 
   let typingInterval = null;
@@ -34,8 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = "";
     input.style.height = "auto";
     loading.classList.remove("hidden");
-    stopButton.classList.remove("opacity-40");
-    stopButton.removeAttribute("disabled");
     stopTyping = false;
     messageCount++;
 
@@ -47,8 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = await response.json();
     loading.classList.add("hidden");
-    stopButton.classList.add("opacity-40");
-    stopButton.setAttribute("disabled", "true");
 
     appendMessage("Navigator", data.reply);
     messageHistory.push({ role: "assistant", content: data.reply });
@@ -57,13 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
       downloadButton.classList.remove("disabled-button");
       downloadButton.removeAttribute("disabled");
     }
-  });
-
-  stopButton.addEventListener("click", () => {
-    stopTyping = true;
-    stopButton.classList.add("opacity-40");
-    stopButton.setAttribute("disabled", "true");
-    loading.classList.add("hidden");
   });
 
   function appendMessage(sender, text, isInstant = false) {
@@ -160,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
+      doc.setTextColor(0, 0, 0);
     }
   });
 });
