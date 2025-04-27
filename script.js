@@ -151,10 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const pageCount = doc.internal.getNumberOfPages();
       const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(100, 100, 100); // Gray color for page number
       doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
-      doc.setTextColor(0, 0, 0);
+
+      doc.setTextColor(0, 0, 0); // 💥 FIX: Reset text color back to black
     }
+
 
     setPageHeader(pdf);
 
