@@ -4,9 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const log = document.getElementById("chat-log");
   const downloadButton = document.getElementById("download-button");
 
-  let typingInterval = null;
   let thinkingBubble = null;
-  let stopTyping = false;
   let messageCount = 0;
   const messageHistory = [];
 
@@ -32,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     input.value = "";
     input.style.height = "auto";
-    stopTyping = false;
     messageCount++;
 
     showThinkingBubble();
@@ -67,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nameSpan.textContent = sender;
 
     const textSpan = document.createElement("span");
-    textSpan.innerHTML = parseMarkdown(text); // Apply markdown parsing!
+    textSpan.innerHTML = parseMarkdown(text);
 
     bubble.appendChild(nameSpan);
     bubble.appendChild(textSpan);
@@ -114,11 +111,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function parseMarkdown(text) {
-    // Basic Markdown parsing
     return text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")   // Bold
-      .replace(/^# (.*$)/gim, "<h3 class='text-lg font-bold mb-2'>$1</h3>") // H3 Heading
-      .replace(/\n/g, "<br>");   // Line breaks
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")                     // Bold
+      .replace(/^# (.*$)/gim, "<h3 class='text-lg font-bold mb-2'>$1</h3>")  // Headings
+      .replace(/^- (.*$)/gim, "<li class='list-disc ml-5'>$1</li>")          // List item
+      .replace(/\n/g, "<br>")                                                // New lines
+      .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-500 underline' target='_blank'>$1</a>"); // Links
   }
 
   downloadButton.addEventListener("click", async () => {
@@ -127,7 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    let y = 80;
+    const marginX = 50;
+    let y = 100;
 
     pdf.setFont("Helvetica");
 
@@ -144,32 +143,37 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.setTextColor(100, 100, 100);
     pdf.text(`Downloaded: ${timestamp}`, pageWidth / 2, 75, { align: "center" });
 
-    pdf.setFontSize(12);
-    pdf.setTextColor(0, 0, 0);
-
     const messages = document.querySelectorAll("#chat-log > div");
 
     messages.forEach((wrapper) => {
       const name = wrapper.querySelector("strong")?.textContent || "";
-      const rawContent = wrapper.querySelector("span")?.innerHTML || "";
-      const plainTextContent = rawContent
-        .replace(/<[^>]*>/g, "") // strip all html tags
-        .replace(/&nbsp;/g, " "); // clean spaces
+      const rawContent = wrapper.querySelector("span")?.innerText || "";
 
-      if (y > pageHeight - 80) {
+      if (y > pageHeight - 100) {
         addPageNumber(pdf);
         pdf.addPage();
-        y = 50;
+        y = 80;
       }
 
+      pdf.setFontSize(12);
       pdf.setFont(undefined, "bold");
-      pdf.text(name, 50, y);
-      y += 16;
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(name, marginX, y);
+      y += 18;
 
       pdf.setFont(undefined, "normal");
-      const lines = pdf.splitTextToSize(plainTextContent, 500);
-      pdf.text(lines, 60, y);
-      y += lines.length * 14 + 10;
+      const lines = pdf.splitTextToSize(rawContent, pageWidth - marginX * 2);
+      lines.forEach((line) => {
+        if (y > pageHeight - 80) {
+          addPageNumber(pdf);
+          pdf.addPage();
+          y = 80;
+        }
+        pdf.text(line, marginX, y);
+        y += 16;
+      });
+
+      y += 10;
     });
 
     addPageNumber(pdf);
@@ -178,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function addPageNumber(doc) {
       const pageCount = doc.internal.getNumberOfPages();
       const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
-
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
