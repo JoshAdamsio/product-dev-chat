@@ -147,15 +147,25 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text(`Downloaded: ${timestampForHeader}`, pageWidth / 2, 75, { align: "center" });
     }
 
-    function addPageNumber(doc) {
-      const pageCount = doc.internal.getNumberOfPages();
-      const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100); // Gray color for page number
-      doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
+function addPageNumber(doc) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageCount = doc.internal.getNumberOfPages();
+  const pageCurrent = doc.internal.getCurrentPageInfo().pageNumber;
 
-      doc.setTextColor(0, 0, 0); // 💥 FIX: Reset text color back to black
-    }
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+
+  // Centered footer line just below page number
+  doc.text("JoshAdams.io - Product Coach V0.1", pageWidth / 2, pageHeight - 15, { align: "center" });
+  
+  // Centered page number
+  doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 30, { align: "center" });
+
+  // Reset color to black for next content
+  doc.setTextColor(0, 0, 0);
+}
+
 
 
     setPageHeader(pdf);
