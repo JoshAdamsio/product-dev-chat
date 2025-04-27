@@ -39,7 +39,7 @@
 </head>
 
 <body class="bg-white text-gray-900 font-sans min-h-screen flex flex-col">
-  <div class="max-w-3xl mx-auto w-full flex flex-col flex-grow mt-4 p-4 chat-box-border">
+  <div class="max-w-3xl w-full mx-auto flex flex-col flex-grow mt-4 px-4 sm:px-6 lg:px-8 chat-box-border">
 
     <!-- Chat Log -->
     <div id="chat-log" class="flex-1 min-h-[50vh] overflow-y-auto px-2 py-2 bg-white space-y-4 rounded"></div>
@@ -49,16 +49,17 @@
 
     <!-- Input Form -->
     <form id="chat-form" class="flex flex-col gap-2 mt-4">
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <textarea id="user-input" rows="2"
-          class="flex-1 border px-4 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="flex-1 border px-4 py-3 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 text-base"
           placeholder="Type your question... (Enter to send, Shift+Enter for newline)"></textarea>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Start</button>
+        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded text-base">Start</button>
       </div>
-      <div class="flex gap-2">
-        <button id="download-button" type="button" class="bg-gray-800 text-white px-4 py-2 rounded w-32 disabled-button" disabled>Download PDF</button>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center sm:justify-start">
+        <button id="download-button" type="button" class="bg-gray-800 text-white px-6 py-3 rounded text-base disabled-button" disabled>Download PDF</button>
       </div>
     </form>
+
   </div>
 </body>
 </html>
