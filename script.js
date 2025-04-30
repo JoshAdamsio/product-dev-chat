@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = await response.json();
     removeThinkingBubble();
-    appendMessage("Navigator", data.reply);
+    appendMessage("Product Copilot", data.reply);
     messageHistory.push({ role: "assistant", content: data.reply });
 
     if (messageCount >= 1) {
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const nameSpan = document.createElement("strong");
     nameSpan.className = "block text-sm font-semibold mb-1";
-    nameSpan.textContent = "Navigator";
+    nameSpan.textContent = "Product Copilot";
 
     const thinkingText = document.createElement("span");
     thinkingText.className = "text-gray-500 text-base";
