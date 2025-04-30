@@ -145,6 +145,16 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Downloaded: ${timestampForHeader}`, pageWidth / 2, 75, { align: "center" });
+
+      // Insert welcome message at startup
+appendMessage("Product Copilot", `✨ **Welcome to the Product Copilot!**  
+- To download your chat, click **Download PDF** below.  
+- You can send feedback [here](mailto:feedback@joshadams.io)  
+- Try asking:
+  - “Help me figure out if there's a market for my product”
+  - “What's a prototyping strategy that could help me validate my idea?”
+  - “What should I consider before building a physical product?”`);
+
     }
 
 function addPageNumber(doc) {
