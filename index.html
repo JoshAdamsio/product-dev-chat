@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Product Dev Navigator</title>
+  <title>Product Copilot</title>
   <script defer src="script.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -41,9 +41,10 @@
       50% { left: 30%; width: 50%; }
       100% { left: 100%; width: 0%; }
     }
-.animate-progress {
-  animation: progressBar 1.5s infinite ease-in-out;
-}
+
+    .animate-progress {
+      animation: progressBar 1.5s infinite ease-in-out;
+    }
   </style>
 </head>
 
@@ -54,7 +55,7 @@
     <div id="chat-log" class="flex-1 min-h-[50vh] overflow-y-auto px-2 py-2 bg-white space-y-4 rounded"></div>
 
     <!-- Typing Indicator -->
-    <div id="loading" class="text-sm text-gray-500 italic animate-pulse px-4 hidden">Product Coach is thinking...</div>
+    <div id="loading" class="text-sm text-gray-500 italic animate-pulse px-4 hidden">Product Copilot is thinking...</div>
 
     <!-- Input Form -->
     <form id="chat-form" class="flex flex-col gap-2 mt-4">
@@ -67,6 +68,10 @@
       <div class="flex flex-col sm:flex-row gap-2 justify-center sm:justify-start">
         <button id="download-button" type="button" class="bg-gray-800 text-white px-6 py-3 rounded text-base disabled-button" disabled>Download PDF</button>
       </div>
+      <p class="text-xs text-center sm:text-left italic text-gray-500 mt-1">
+        🤖 This is <strong>Beta V0.1</strong> of the JoshAdams.io Product Copilot.<br>
+        AI makes mistakes. I’m not liable if it tells you to weld your toaster to a drone.
+      </p>
     </form>
 
   </div>
