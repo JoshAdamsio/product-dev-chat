@@ -209,11 +209,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ✅ Show welcome message on load
-  appendMessage("Product Copilot", `✨ **Welcome to the Product Copilot!**  
-- To download your chat, click **Download PDF** below.  
-- You can send feedback [here](mailto:feedback@joshadams.io)  
-- Try asking:
-  - “Help me figure out if there's a market for my product”
-  - “What's a prototyping strategy that could help me validate my idea?”
-  - “What should I consider before building a physical product?”`);
+  appendMessage("Product Copilot", `✨ **Welcome to the Product Copilot!**    
+How may I help you? Here are few places to start:
+- “Help me figure out if there's a market for my product”
+- “What's a prototyping strategy that could help me validate my idea?”
+- “What should I consider before building a physical product?”
+*Please copy or download your chat via **Download PDF** before reloading or navigating away--Chats will not ne saved!`);
 });
