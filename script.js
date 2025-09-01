@@ -34,22 +34,105 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showThinkingBubble();
 
-    const response = await fetch("https://product-dev-chat-production.up.railway.app/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userMessage, history: messageHistory }),
-    });
+    // ---- Robust fetch with timeout + safe JSON/text handling ----
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45_000); // 45s
+    let replyText = "";
 
-    const data = await response.json();
-    removeThinkingBubble();
-    appendMessage("Product Copilot", data.reply);
-    messageHistory.push({ role: "assistant", content: data.reply });
+    try {
+      const response = await fetch(
+        "https://product-dev-chat-production.up.railway.app/api/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMessage, history: messageHistory }),
+          signal: controller.signal
+        }
+      );
+      clearTimeout(timeout);
 
-    if (messageCount >= 1) {
-      downloadButton.classList.remove("disabled-button");
-      downloadButton.removeAttribute("disabled");
+      const ctype = (response.headers.get("content-type") || "").toLowerCase();
+
+      if (!response.ok) {
+        // Try to read text for a helpful error bubble
+        const errText = ctype.includes("application/json")
+          ? JSON.stringify(await response.json())
+          : await response.text();
+        throw new Error(`HTTP ${response.status} ${response.statusText}: ${truncate(errText, 800)}`);
+      }
+
+      // Prefer JSON, but gracefully fall back to text.
+      let data = null;
+      if (ctype.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const raw = await response.text();
+        data = { reply: raw };
+      }
+
+      // ---- Extract reply from several possible shapes ----
+      replyText =
+        extractReply(data) ??
+        ""; // ensure string below
+
+      if (!replyText) {
+        throw new Error(
+          `Backend response missing assistant text. Keys: ${Object.keys(data || {}).join(", ")}`
+        );
+      }
+
+      removeThinkingBubble();
+      appendMessage("Product Copilot", replyText);
+      messageHistory.push({ role: "assistant", content: replyText });
+
+      if (messageCount >= 1) {
+        downloadButton.classList.remove("disabled-button");
+        downloadButton.removeAttribute("disabled");
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      removeThinkingBubble();
+      appendMessage(
+        "Product Copilot",
+        `⚠️ Oops—something went wrong.\n\n${(err && err.message) ? err.message : String(err)}\n\n` +
+        `Tips:\n- If this started after a model update, your server may be returning a different JSON shape.\n` +
+        `- Check server logs for 'model_not_found' or 'invalid_param' (e.g., \`max_output_tokens\`).`
+      );
+      messageHistory.push({
+        role: "assistant",
+        content: `Error shown to user: ${(err && err.message) ? err.message : String(err)}`
+      });
     }
   });
+
+  function extractReply(data) {
+    // 1) Your existing shape
+    if (typeof data?.reply === "string") return data.reply;
+
+    // 2) Responses API style helpers people often use
+    if (typeof data?.output_text === "string") return data.output_text;
+    if (typeof data?.output === "string") return data.output;
+
+    // 3) Nested response
+    if (typeof data?.response?.output_text === "string") return data.response.output_text;
+
+    // 4) Chat Completions style
+    if (Array.isArray(data?.choices)) {
+      const c = data.choices[0];
+      if (typeof c?.message?.content === "string") return c.message.content;
+      if (typeof c?.text === "string") return c.text;
+    }
+
+    // 5) Plain text
+    if (typeof data === "string") return data;
+
+    return null;
+  }
+
+  function truncate(s, n) {
+    if (!s) return "";
+    return s.length > n ? s.slice(0, n) + "…" : s;
+  }
 
   function appendMessage(sender, text, isInstant = false) {
     const wrapper = document.createElement("div");
@@ -57,14 +140,16 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.className = `flex ${isUser ? "justify-end" : "justify-start"} w-full`;
 
     const bubble = document.createElement("div");
-    bubble.className = `fade-in ${isUser ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"} rounded-lg px-4 py-2 w-[95%] whitespace-pre-wrap shadow`;
+    bubble.className =
+      `fade-in ${isUser ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"} ` +
+      `rounded-lg px-4 py-2 w-[95%] whitespace-pre-wrap shadow`;
 
     const nameSpan = document.createElement("strong");
     nameSpan.className = "block text-sm font-semibold mb-1";
     nameSpan.textContent = sender;
 
     const textSpan = document.createElement("span");
-    textSpan.innerHTML = parseMarkdown(text);
+    textSpan.innerHTML = parseMarkdown(String(text ?? ""));
 
     bubble.appendChild(nameSpan);
     bubble.appendChild(textSpan);
@@ -111,12 +196,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function parseMarkdown(text) {
-    return text
+    const s = String(text ?? "");
+    return s
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/^# (.*$)/gim, "<h3 class='text-lg font-bold mb-2'>$1</h3>")
       .replace(/^- (.*$)/gim, "<li class='list-disc ml-5'>$1</li>")
       .replace(/\n/g, "<br>")
-      .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-500 underline' target='_blank'>$1</a>");
+      .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-500 underline' target='_blank' rel='noopener noreferrer'>$1</a>");
   }
 
   downloadButton.addEventListener("click", async () => {
@@ -156,13 +242,10 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
 
-      // Footer brand line
       doc.text("JoshAdams.io Product Copilot Beta V0.1", pageWidth / 2, pageHeight - 30, { align: "center" });
-
-      // Page number just below it
       doc.text(`Page ${pageCurrent} of ${pageCount}`, pageWidth / 2, pageHeight - 15, { align: "center" });
 
-      doc.setTextColor(0, 0, 0); // Reset to black
+      doc.setTextColor(0, 0, 0);
     }
 
     setPageHeader(pdf);
@@ -208,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.save(`Product-Dev-Chat_${timestampForFile}.pdf`);
   });
 
-  // ✅ Show welcome message on load
+  // Welcome message on load
   appendMessage("Product Copilot", `✨ **Welcome to the Product Copilot!**    
 How may I help you? Here are few places to start:
 - “Help me figure out if there's a market for my product”
